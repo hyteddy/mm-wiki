@@ -1,13 +1,14 @@
 package main
 
 import (
+	"html/template"
+	"net/http"
+
 	"github.com/astaxie/beego"
 	"github.com/phachon/mm-wiki/app"
 	"github.com/phachon/mm-wiki/app/controllers"
 	systemControllers "github.com/phachon/mm-wiki/app/modules/system/controllers"
 	"github.com/phachon/mm-wiki/app/utils"
-	"html/template"
-	"net/http"
 )
 
 func init() {
@@ -31,6 +32,7 @@ func initRouter() {
 	beego.AutoRouter(&controllers.PageController{})
 	beego.AutoRouter(&controllers.ImageController{})
 	beego.AutoRouter(&controllers.AttachmentController{})
+	beego.AutoRouter(&controllers.SearchController{})
 
 	systemNamespace := beego.NewNamespace("/system",
 		beego.NSAutoRouter(&systemControllers.MainController{}),
@@ -55,6 +57,9 @@ func initRouter() {
 
 	// add template func
 	beego.AddFuncMap("dateFormat", utils.Date.Format)
+	beego.AddFuncMap("safe", func(raw string) template.HTML {
+		return template.HTML(raw)
+	})
 }
 
 func http_404(rw http.ResponseWriter, req *http.Request) {

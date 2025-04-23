@@ -1,9 +1,11 @@
 package controllers
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/phachon/mm-wiki/app/models"
+	"github.com/phachon/mm-wiki/app/services"
 )
 
 type MainController struct {
@@ -159,28 +161,33 @@ func (this *MainController) Search() {
 		}
 	}
 	searchDocContents := make(map[string]string)
+	searchDocNames := make(map[string]string)
 	// 默认根据内容搜索
 	// v0.2.1 下线全文搜索功能
-	searchType = "title"
-	//if searchType == "title" {
-	//	documents, err = models.DocumentModel.GetDocumentsByLikeName(keyword)
-	//} else {
-	//	searchRes := global.DocSearcher.SearchDoc(types.SearchReq{Text: keyword})
-	//	searchDocIds := []string{}
-	//	for _, searchDoc := range searchRes.Docs {
-	//		if len(searchDoc.TokenSnippetLocs) == 0 {
-	//			continue
-	//		}
-	//		docId := searchDoc.DocId
-	//		content := searchDoc.Content
-	//		locIndex := searchDoc.TokenSnippetLocs[0]
-	//		searchContent := utils.Misc.SubStrUnicodeBySubStrIndex(content, keyword, locIndex, 30, 30)
-	//		searchDocContents[docId] = searchContent
-	//		searchDocIds = append(searchDocIds, docId)
-	//	}
-	//	documents, err = models.DocumentModel.GetDocumentsByDocumentIds(searchDocIds)
-	//}
-	documents, err = models.DocumentModel.GetDocumentsByLikeName(keyword)
+	// searchType = "title"
+	if searchType == "title" {
+		documents, err = models.DocumentModel.GetDocumentsByLikeName(keyword)
+	} else {
+		results := services.DocSearchBleve.DocSearch(keyword)
+
+		searchDocIds := []string{}
+		fmt.Printf("共找到 %d 条结果\n", results.Total)
+		for _, searchDoc := range results.Hits {
+			docId := searchDoc.ID
+			contentFragments := searchDoc.Fragments["content"]
+			searchContent := strings.Join(contentFragments, "...")
+			nameFragments := searchDoc.Fragments["name"]
+			searchName := strings.Join(nameFragments, "...")
+			// searchContent := utils.Misc.SubStrUnicodeBySubStrIndex(content, keyword, 2, 30, 30)
+			// searchContent = strings.ReplaceAll(searchContent, "<mark>", "<lable style='color:red'>")
+			// searchContent = strings.ReplaceAll(searchContent, "</mark>", "</lable>")
+			searchDocContents[docId] = searchContent
+			searchDocNames[docId] = searchName
+			searchDocIds = append(searchDocIds, docId)
+		}
+		documents, err = models.DocumentModel.GetDocumentsByDocumentIds(searchDocIds)
+	}
+	// documents, err = models.DocumentModel.GetDocumentsByLikeName(keyword)
 	if err != nil {
 		this.ErrorLog("搜索文档出错：" + err.Error())
 		this.ViewError("搜索文档错误！")
@@ -199,6 +206,9 @@ func (this *MainController) Search() {
 				continue
 			}
 			document["search_content"] = searchContent
+			document["name"] = searchDocNames[documentId]
+		} else {
+			document["search_content"] = ""
 		}
 		realDocuments = append(realDocuments, document)
 	}

@@ -8,7 +8,7 @@
                             <span class="input-group-addon"> 搜索方式</span>
                             <select class="form-control" name="search_type">
                                 <option value="title" {{if eq $.search_type "title"}} selected="selected" {{end}}>文档标题</option>
-{{/*                                <option value="content" {{if eq $.search_type "content"}} selected="selected" {{end}}>文档内容</option>*/}}
+                                <option value="content" {{if eq $.search_type "content"}} selected="selected" {{end}}>全文检索</option>
                             </select>
                         </div>
                     </div>
@@ -40,14 +40,14 @@
                                 {{else}}
                                     <i class="fa fa-folder-o"></i>
                                 {{end}}
-                                {{$document.name}}</a>
+                                {{safe $document.name}}</a>
                             </div>
                             <span class="text text-font-12 document-user-time"><i class="fa fa-calendar"></i>
                     创建于 {{dateFormat $document.create_time "Y-m-d H:i:s"}}，修改于{{dateFormat $document.update_time "Y-m-d H:i:s"}}
                             </span>
                         </li>
                         <hr>
-                        <p class="search-content">{{$document.search_content}}</p>
+                        <p class="search-content">{{safe $document.search_content}}</p>
                     {{end}}
                     </ul>
                 </div>

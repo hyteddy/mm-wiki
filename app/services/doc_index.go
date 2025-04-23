@@ -17,10 +17,10 @@ func NewDocIndexService() *DocIndex {
 }
 
 func (di *DocIndex) IsUpdateDocIndex() bool {
-	//fulltextSearchOpen := models.ConfigModel.GetConfigValueByKey(models.ConfigKeyFulltextSearch, "0")
-	//if fulltextSearchOpen == "1" {
-	//	return true
-	//}
+	fulltextSearchOpen := models.ConfigModel.GetConfigValueByKey(models.ConfigKeyFulltextSearch, "0")
+	if fulltextSearchOpen == "1" {
+		return true
+	}
 	return false
 }
 
@@ -33,7 +33,7 @@ func (di *DocIndex) ForceDelDocIdIndex(docId string) {
 		return
 	}
 	// todo add search index
-
+	DocSearchBleve.DelIndex(docId)
 }
 
 // UpdateDocIndex 更新单个文件的索引
@@ -41,18 +41,20 @@ func (di *DocIndex) ForceUpdateDocIndexByDocId(docId string) error {
 	if docId == "" {
 		return nil
 	}
-	if !di.IsUpdateDocIndex() {
-		return nil
-	}
+	// if !di.IsUpdateDocIndex() {
+	// 	return nil
+	// }
 	doc, err := models.DocumentModel.GetDocumentByDocumentId(docId)
 	if err != nil {
 		return err
 	}
-	_, _, err = models.DocumentModel.GetDocumentContentByDocument(doc)
+	content, _, err := models.DocumentModel.GetDocumentContentByDocument(doc)
 	if err != nil {
 		return err
 	}
+	doc["content"] = content
 	// todo add search index
+	DocSearchBleve.AddIndex(docId, doc)
 	return nil
 }
 
@@ -65,12 +67,16 @@ func (di *DocIndex) UpdateDocIndex(doc map[string]string) {
 	if !di.IsUpdateDocIndex() {
 		return
 	}
-	_, _, err := models.DocumentModel.GetDocumentContentByDocument(doc)
+	content, _, err := models.DocumentModel.GetDocumentContentByDocument(doc)
 	if err != nil {
 		logs.Error("[UpdateDocIndex] get documentId=%s content err: %s", docId, err.Error())
 		return
 	}
 	// todo add search index
+	// data := types.DocData{Content: content}
+	doc["content"] = content
+	// todo add search index
+	DocSearchBleve.AddIndex(docId, doc)
 }
 
 // UpdateDocsIndex 批量更新多个文件的索引
@@ -96,6 +102,11 @@ func (di *DocIndex) UpdateDocsIndex(docs []map[string]string) {
 		}(doc)
 	}
 	wait.Wait()
+}
+
+// UpdateAllDocIndex 更新所有的文档
+func (di *DocIndex) DelAllDocIndex() {
+	DocSearchBleve.DelAllIndex()
 }
 
 // UpdateAllDocIndex 更新所有的文档

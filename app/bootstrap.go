@@ -3,19 +3,21 @@ package app
 import (
 	"flag"
 	"fmt"
-	"github.com/astaxie/beego"
-	"github.com/astaxie/beego/logs"
-	"github.com/fatih/color"
-	"github.com/phachon/mm-wiki/app/models"
-	"github.com/phachon/mm-wiki/app/utils"
-	"github.com/phachon/mm-wiki/app/work"
-	"github.com/phachon/mm-wiki/global"
-	"github.com/snail007/go-activerecord/mysql"
 	"log"
 	"os"
 	"path"
 	"path/filepath"
 	"time"
+
+	"github.com/astaxie/beego"
+	"github.com/astaxie/beego/logs"
+	"github.com/fatih/color"
+	"github.com/phachon/mm-wiki/app/models"
+	"github.com/phachon/mm-wiki/app/services"
+	"github.com/phachon/mm-wiki/app/utils"
+	"github.com/phachon/mm-wiki/app/work"
+	"github.com/phachon/mm-wiki/global"
+	"github.com/snail007/go-activerecord/mysql"
 )
 
 var (
@@ -53,7 +55,7 @@ func init() {
 	initDB()
 	checkUpgrade()
 	initDocumentDir()
-	//initSearch()
+	initSearch()
 	//initWork()
 	StartTime = time.Now().Unix()
 }
@@ -132,7 +134,7 @@ func initConfig() {
 	logs.SetLogFuncCall(true)
 }
 
-//init db
+// init db
 func initDB() {
 	host := beego.AppConfig.String("db::host")
 	port, _ := beego.AppConfig.Int("db::port")
@@ -241,29 +243,35 @@ func checkUpgrade() {
 
 func initSearch() {
 
-	gseFile := filepath.Join(RootDir, "docs/search_dict/dictionary.txt")
-	stopFile := filepath.Join(RootDir, "docs/search_dict/stop_tokens.txt")
-	ok, _ := utils.File.PathIsExists(gseFile)
-	if !ok {
-		logs.Error("search dict file " + gseFile + " is not exists!")
-		os.Exit(1)
-	}
-	ok, _ = utils.File.PathIsExists(stopFile)
-	if !ok {
-		logs.Error("search stop dict file " + stopFile + " is not exists!")
-		os.Exit(1)
-	}
-	//global.DocSearcher.Init(types.EngineOpts{
-	//	UseStore:    true,
-	//	StoreFolder: SearchIndexAbsDir,
-	//	Using:       3,
-	//	//GseDict:       "zh",
-	//	GseDict:       gseFile,
-	//	StopTokenFile: stopFile,
-	//	IndexerOpts: &types.IndexerOpts{
-	//		IndexType: types.LocsIndex,
-	//	},
-	//})
+	// gseFile := filepath.Join(RootDir, "docs/search_dict/dictionary.txt")
+	// stopFile := filepath.Join(RootDir, "docs/search_dict/stop_tokens.txt")
+	// ok, _ := utils.File.PathIsExists(gseFile)
+	// if !ok {
+	// 	logs.Error("search dict file " + gseFile + " is not exists!")
+	// 	os.Exit(1)
+	// }
+	// ok, _ = utils.File.PathIsExists(stopFile)
+	// if !ok {
+	// 	logs.Error("search stop dict file " + stopFile + " is not exists!")
+	// 	os.Exit(1)
+	// }
+
+	services.DocSearchBleve.Init()
+	services.DocIndexService.DelAllDocIndex()
+	services.DocIndexService.UpdateAllDocIndex(30)
+
+	// work.NewDocSearchBleve().Index(id,data);
+	// global.DocSearcher.Init(types.EngineOpts{
+	// 	UseStore:    true,
+	// 	StoreFolder: SearchIndexAbsDir,
+	// 	Using:       3,
+	// 	//GseDict:       "zh",
+	// 	GseDict:       gseFile,
+	// 	StopTokenFile: stopFile,
+	// 	IndexerOpts: &types.IndexerOpts{
+	// 		IndexType: types.LocsIndex,
+	// 	},
+	// })
 }
 
 func initWork() {

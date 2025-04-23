@@ -43,7 +43,7 @@ func (d *document) GetPageFileByParentPath(name string, docType int, parentPath 
 	return
 }
 
-//get document path by spaceName
+// get document path by spaceName
 func (d *document) GetDefaultPageFileBySpaceName(name string) string {
 	return fmt.Sprintf("%s/%s%s", name, Document_Default_FileName, Document_Page_Suffix)
 }
@@ -51,6 +51,11 @@ func (d *document) GetDefaultPageFileBySpaceName(name string) string {
 // get document abs pageFile
 func (d *document) GetAbsPageFileByPageFile(pageFile string) string {
 	return d.MarkdownAbsDir + "/" + pageFile
+}
+
+// get document abs pageFile
+func (d *document) GetAbsRootFileByPageFile(pageFile string) string {
+	return d.DocumentAbsDir + "/" + pageFile
 }
 
 // get document content by pageFile
