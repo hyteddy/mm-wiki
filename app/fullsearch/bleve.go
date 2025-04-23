@@ -208,17 +208,19 @@ func InitSingleton(config Config) error {
 
 		// mapping.DefaultAnalyzer = "myAnalyzer"
 		// 4. 创建或打开索引
-		if config.IndexPath == "" {
-			instance, err = bleve.NewMemOnly(mapping)
-		} else {
-			instance, err = bleve.Open(config.IndexPath)
-			if err == bleve.ErrorIndexPathDoesNotExist {
-				instance, err = bleve.New(config.IndexPath, mapping)
-			}
-		}
-		if err != nil {
-			panic(err)
-		}
+
+		instance, err = bleve.NewMemOnly(mapping)
+		// if config.IndexPath == "" {
+		// 	instance, err = bleve.NewMemOnly(mapping)
+		// } else {
+		// 	instance, err = bleve.Open(config.IndexPath)
+		// 	if err == bleve.ErrorIndexPathDoesNotExist {
+		// 		instance, err = bleve.New(config.IndexPath, mapping)
+		// 	}
+		// }
+		// if err != nil {
+		// 	panic(err)
+		// }
 
 	})
 	return err
@@ -235,7 +237,7 @@ func buildIndexMapping() (mapping.IndexMapping, error) {
 	indexMapping := bleve.NewIndexMapping()
 	// indexMapping.AddDocumentMapping("aa", breweryMapping)
 
-	indexMapping.DefaultAnalyzer = "segoa"
+	// indexMapping.DefaultAnalyzer = "segoa"
 
 	// var err = indexMapping.AddCustomTokenizer("segot", map[string]interface{}{
 	// 	"type": SegoTokenizerName,
